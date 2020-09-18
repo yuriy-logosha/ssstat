@@ -56,5 +56,13 @@ with myclient:
                                 'total_eur': summ, 'date': datetime.utcnow()})
 
         [print(i) for i in ss_stat.find().sort([('date', -1)]).limit(2)]
+        ads = []
+        ads_today = []
+        ads_yesterday = []
+        d_b_ads_yesterday = []
+        geodata_today = []
+        geo_address = []
+        total_address = []
+        diff_prices = []
 
         time.sleep(900)

@@ -1,3 +1,4 @@
+import json
 import time
 from datetime import timedelta, date, datetime
 
@@ -9,6 +10,17 @@ db = "ss_ads"
 default = f"mongodb://{local}:27017/?authSource={db}"
 myclient = pymongo.MongoClient(default)
 begin_day = lambda day: datetime(day.year, day.month, day.day, 0, 0, 0)
+normalize = lambda _json: json.loads(json.dumps(_json, cls=JSONEncoder))
+
+
+class JSONEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, ObjectId):
+            return None
+        if isinstance(o, datetime):
+            return None
+        return json.JSONEncoder.default(self, o)
+
 
 with myclient:
     ss_stat = myclient.ss_ads['stat']
@@ -49,11 +61,15 @@ with myclient:
         summ = sum(int(ad['price'].replace('€', '').replace(',', '')) for ad in ads)
         print("Всего евро: %s €" % summ)
         print("Всего изменений цены:", len(diff_prices))
-        r = ss_stat.insert_one({'ads_count': len(ads), 'houses': houses, 'geo_address': len(geo_address),
-                                'total_address': len(total_address), 'diff_prices': len(diff_prices),
-                                'diff_geo': len(diff_geo), 'ads_today': len(ads_today),
-                                'geodata_today': len(geodata_today), 'empty_geodata': len(geo_address_empty),
-                                'total_eur': summ, 'date': datetime.now()})
+        json_for_insert = {'ads_count': len(ads), 'houses': houses, 'geo_address': len(geo_address),
+                           'total_address': len(total_address), 'diff_prices': len(diff_prices),
+                           'diff_geo': len(diff_geo), 'ads_today': len(ads_today),
+                           'geodata_today': len(geodata_today), 'empty_geodata': len(geo_address_empty),
+                           'total_eur': summ, 'date': datetime.now()}
+        last = list(ss_stat.find().sort([('date', -1)]).limit(1))[0]
+
+        if not sorted(normalize(last).items())[1::] == sorted(normalize(json_for_insert).items()):
+            r = ss_stat.insert_one(json_for_insert)
 
         [print(i) for i in ss_stat.find().sort([('date', -1)]).limit(2)]
         ads = []

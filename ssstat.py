@@ -20,7 +20,7 @@ with myclient:
     while True:
         ads = list(ss_ads.find(kind_ad))
 
-        today_id = ObjectId.from_datetime(begin_day(datetime.utcnow()))
+        today_id = ObjectId.from_datetime(begin_day(datetime.now()))
         ads_today = list(ss_ads.find({'$and': [{'kind': 'ad'}, {"_id": {"$gt": today_id}}]}))
 
         yesterday_id = ObjectId.from_datetime(begin_day(date.today() - timedelta(days=1)))
@@ -53,7 +53,7 @@ with myclient:
                                 'total_address': len(total_address), 'diff_prices': len(diff_prices),
                                 'diff_geo': len(diff_geo), 'ads_today': len(ads_today),
                                 'geodata_today': len(geodata_today), 'empty_geodata': len(geo_address_empty),
-                                'total_eur': summ, 'date': datetime.utcnow()})
+                                'total_eur': summ, 'date': datetime.now()})
 
         [print(i) for i in ss_stat.find().sort([('date', -1)]).limit(2)]
         ads = []

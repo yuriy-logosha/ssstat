@@ -22,6 +22,11 @@ class JSONEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, o)
 
 
+def str_price_to_int(s: str) -> int:
+    stripped = s.replace('€', '').replace(',', '').strip()
+    return int(stripped) if stripped else 0
+
+
 with myclient:
     ss_stat = myclient.ss_ads['stat']
     ss_ads = myclient.ss_ads.ads
@@ -58,7 +63,7 @@ with myclient:
         diff_geo = list(set(total_address) - set(geo_address))
         print("Необходимо обработать адресов:", len(diff_geo), diff_geo)
         print("Адресов без геоданных:", len(geo_address_empty), geo_address_empty)
-        summ = sum(int(ad['price'].replace('€', '').replace(',', '')) for ad in ads)
+        summ = sum(str_price_to_int(ad['price']) for ad in ads)
         print("Всего евро: %s €" % summ)
         print("Всего изменений цены:", len(diff_prices))
         json_for_insert = {'ads_count': len(ads), 'houses': houses, 'geo_address': len(geo_address),
